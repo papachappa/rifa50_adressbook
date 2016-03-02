@@ -1,0 +1,56 @@
+*** Settings ***
+Resource        ${COMMON_SETTINGS_FILE}
+
+Suite Setup         Run Keywords    Setup Sipp      Rewrite And Restart SBC
+Suite teardown      Sleep       10
+
+*** Test Cases ***
+
+Running CLI
+     [Documentation]                    Запускаем модуль CLI
+     Expectus                           sbc service-platform id 13 gates 0 polling-timeout 3000    commit
+     Sleep                              1
+
+
+Check In Cfg File
+     Check SBC Conf Contain             Polling = 3000;
+     Sleep                              1
+
+
+Running Scenario
+    [Documentation]                     Абонент ${sipp_b_number} совершает вызов на абонента ${sipp_a_number}
+    [Teardown]                          Get SippA and SippB Logs
+    SippA.Run Scenario                  ${SCENARIO_PATH}/Polling_SP/receive_call_wait_bye_B-A       ${log_error_A}    ${log_message_A}    ${log_log_A}
+    SippB.Set CdPN                      ${sipp_a_number}
+    SippB.Run Scenario                  ${SCENARIO_PATH}/Polling_SP/uac_init_invite_B-A             ${log_error_B}    ${log_message_B}    ${log_log_B}
+    Sleep                               35
+
+
+Import SBC Logs
+    Import SippA and SippB SBC Logs
+
+Check In Sip Transport Log
+     [Documentation]                     Проверка файла sip_transport.log
+     SBC.Check File                      sip_transport.log   OPTIONS sip:2030@${host_mkd_B}:${mkd_port} SIP/2.0
+
+
+Stopping MKD
+     [Documentation]                     Остановка МКД
+     [Timeout]                           2 minutes
+     Manipulation.Manipulate             MKD     stop    ${host_mkd_B}
+     Sleep                               8
+     Manipulation.Check Pids Count       MKD-MKD   stop   ${host_mkd_B}
+
+
+Starting MKD
+    [Documentation]                      Запуск   МКД
+    [Timeout]                            2 minutes
+    Manipulation.Manipulate              MKD     start    ${host_mkd_B}
+    Sleep                                8
+    Manipulation.Check Pids Count        MKD-MKD   start    ${host_mkd_B}
+
+
+Wait For Stop Sipp
+    SippA.Waiting For Stop Scenario      5
+    SippB.Waiting For Stop Scenario      5
+

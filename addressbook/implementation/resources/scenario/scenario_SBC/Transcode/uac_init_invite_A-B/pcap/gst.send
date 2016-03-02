@@ -1,0 +1,30 @@
+Установка конвейера в состояние PAUSED...
+Подготовка конвейера (PREROLL)...
+Получено сообщение #4 от элемента «udpsink0» (state-changed): GstMessageState, old-state=(GstState)GST_STATE_NULL, new-state=(GstState)GST_STATE_READY, pending-state=(GstState)GST_STATE_VOID_PENDING;
+Получено сообщение #5 от элемента «rtppcmapay0» (state-changed): GstMessageState, old-state=(GstState)GST_STATE_NULL, new-state=(GstState)GST_STATE_READY, pending-state=(GstState)GST_STATE_VOID_PENDING;
+/GstPipeline:pipeline0/GstRtpPcmaPay:rtppcmapay0: timestamp = 3692685407
+Получено сообщение #6 от элемента «filesrc0» (state-changed): GstMessageState, old-state=(GstState)GST_STATE_NULL, new-state=(GstState)GST_STATE_READY, pending-state=(GstState)GST_STATE_VOID_PENDING;
+/GstPipeline:pipeline0/GstRtpPcmaPay:rtppcmapay0: seqnum = 48212
+Получено сообщение #7 от элемента «pipeline0» (state-changed): GstMessageState, old-state=(GstState)GST_STATE_NULL, new-state=(GstState)GST_STATE_READY, pending-state=(GstState)GST_STATE_PAUSED;
+Получено сообщение #9 от элемента «rtppcmapay0» (state-changed): GstMessageState, old-state=(GstState)GST_STATE_READY, new-state=(GstState)GST_STATE_PAUSED, pending-state=(GstState)GST_STATE_VOID_PENDING;
+Получено сообщение #12 от контактного гнезда «filesrc0:src» (stream-status): GstMessageStreamStatus, type=(GstStreamStatusType)GST_STREAM_STATUS_TYPE_CREATE, owner=(GstElement)"\(GstFileSrc\)\ filesrc0", object=(GstTask)"\(GstTask\)\ filesrc0:src";
+Получено сообщение #13 от элемента «filesrc0» (state-changed): GstMessageState, old-state=(GstState)GST_STATE_READY, new-state=(GstState)GST_STATE_PAUSED, pending-state=(GstState)GST_STATE_VOID_PENDING;
+Получено сообщение #14 от контактного гнезда «filesrc0:src» (stream-status): GstMessageStreamStatus, type=(GstStreamStatusType)GST_STREAM_STATUS_TYPE_ENTER, owner=(GstElement)"\(GstFileSrc\)\ filesrc0", object=(GstTask)"\(GstTask\)\ filesrc0:src";
+Получено сообщение #15 от элемента «udpsink0» (state-changed): GstMessageState, old-state=(GstState)GST_STATE_READY, new-state=(GstState)GST_STATE_PAUSED, pending-state=(GstState)GST_STATE_VOID_PENDING;
+Получено сообщение #18 от элемента «pipeline0» (state-changed): GstMessageState, old-state=(GstState)GST_STATE_READY, new-state=(GstState)GST_STATE_PAUSED, pending-state=(GstState)GST_STATE_VOID_PENDING;
+Конвейер подготовлен (PREROLLED)...
+Получено сообщение #17 от элемента «pipeline0» (async-done): no message details
+Установка конвейера в состояние PLAYING...
+Получено сообщение #19 от элемента «pipeline0» (new-clock): GstMessageNewClock, clock=(GstClock)"\(GstSystemClock\)\ GstSystemClock";
+New clock: GstSystemClock
+Получено сообщение #21 от элемента «udpsink0» (state-changed): GstMessageState, old-state=(GstState)GST_STATE_PAUSED, new-state=(GstState)GST_STATE_PLAYING, pending-state=(GstState)GST_STATE_VOID_PENDING;
+Получено сообщение #22 от элемента «rtppcmapay0» (state-changed): GstMessageState, old-state=(GstState)GST_STATE_PAUSED, new-state=(GstState)GST_STATE_PLAYING, pending-state=(GstState)GST_STATE_VOID_PENDING;
+Получено сообщение #23 от элемента «filesrc0» (state-changed): GstMessageState, old-state=(GstState)GST_STATE_PAUSED, new-state=(GstState)GST_STATE_PLAYING, pending-state=(GstState)GST_STATE_VOID_PENDING;
+Получено сообщение #24 от элемента «pipeline0» (state-changed): GstMessageState, old-state=(GstState)GST_STATE_PAUSED, new-state=(GstState)GST_STATE_PLAYING, pending-state=(GstState)GST_STATE_VOID_PENDING;
+Получено сообщение #10 от элемента «pipeline0» (eos): no message details
+Получен маркер EOS («конец потока») от элемента «pipeline0».
+Execution ended after 11678140145 ns.
+Установка конвейера в состояние PAUSED...
+Установка конвейера в состояние READY...
+Установка конвейера в состояние NULL...
+Освобождение конвейера...

@@ -1,0 +1,116 @@
+*** Settings ***
+
+Library     modules/Media.py        WITH NAME       MediaR
+Library     modules/Media.py        WITH NAME       MediaT
+Library     modules/Media.py        WITH NAME       Media
+
+*** Test cases ***
+Receiver
+    [Tags]                  In work
+    MediaR.Receive Port     ${16000}
+
+    MediaR.Receive On
+
+    MediaR.Receive Off
+
+Transmitter
+    [Tags]                  In work
+    MediaT.Transmit Freq    ${600}
+
+    MediaT.Transmit Host Port    192.168.100.106    ${16000}
+
+    MediaT.Transmit On
+
+    MediaT.Transmit Off
+
+Send
+    [Tags]                  In work
+    MediaR.Receive Port     ${16000}
+
+    MediaR.Receive On
+
+
+    MediaT.Transmit Freq    ${600}
+
+    MediaT.Transmit Host Port    192.168.100.106    ${16000}
+
+    MediaT.Transmit On
+
+    Sleep                   1
+
+    ${dict}                 MediaR.Receive Spectrum
+
+    Sleep                   1
+
+    MediaT.Transmit Off
+    
+    MediaR.Receive Off
+
+Send 1
+    [Tags]                  In work
+    Media.Receive Port     ${16000}
+
+    Media.Receive On
+
+
+    Media.Transmit Freq    ${600}
+
+    Media.Transmit Host Port    192.168.100.106    ${16000}
+
+    Media.Transmit On
+
+    Sleep                   1
+
+    ${dict}                 Media.Receive Spectrum
+
+    Sleep                   1
+    
+    Media.Receive Off
+
+    Media.Transmit Off
+
+Send 2
+    [Tags]                  In work
+    Media.Receive Port     ${16000}
+
+    Media.Receive On
+
+
+    Media.Transmit Freq    ${600}
+
+    Media.Transmit Host Port    192.168.100.106    ${16000}
+
+    Media.Transmit On
+
+    Sleep                   1
+
+    ${dict}                 Media.Receive Spectrum
+
+    Sleep                   1
+    
+    Media.Receive Off
+
+    Media.Transmit Off
+    
+    Sleep                   1
+
+    Media.Receive Port     ${16001}
+
+    Media.Receive On
+
+
+    Media.Transmit Freq    ${300}
+
+    Media.Transmit Host Port    192.168.100.106    ${16001}
+
+    Media.Transmit On
+
+    Sleep                   1
+
+    ${dict}                 Media.Receive Spectrum
+
+    Sleep                   1
+    
+    Media.Receive Off
+
+    Media.Transmit Off

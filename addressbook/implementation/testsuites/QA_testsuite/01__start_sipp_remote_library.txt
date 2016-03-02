@@ -1,0 +1,17 @@
+*** Settings ***
+
+Library   ${EXECUTION_LIB_PATH}/Manipulation.py    WITH NAME    Manipulation
+
+Documentation          Удаленно заходим на машину с запущенной SBC и запускаем удаленную библиотеку Sipp_Remote_Library
+
+*** Test Cases ***
+
+Start Sipp Remote Library
+    [Documentation]                         Запускаем библиотеку Sipp_Remote_Library по адресу ${remote_lib_host} и с портами ${sipp_A_remote_lib_port}, ${sipp_B_remote_lib_port}, ${sipp_C_remote_lib_port}
+
+    Manipulation.Start Sipp Library        ${remote_lib_host}       ${sipp_A_remote_lib_port}   ${REMOTE_LIB_PATH}
+    Sleep                                   1
+    Manipulation.Start Sipp Library        ${remote_lib_host}       ${sipp_B_remote_lib_port}   ${REMOTE_LIB_PATH}
+    Sleep                                   1
+    Manipulation.Start Sipp Library        ${remote_lib_host}       ${sipp_C_remote_lib_port}   ${REMOTE_LIB_PATH}
+    Sleep                                   1

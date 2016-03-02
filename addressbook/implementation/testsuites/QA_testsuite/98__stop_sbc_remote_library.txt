@@ -1,0 +1,14 @@
+*** Settings ***
+
+Library     ${EXECUTION_LIB_PATH}/Manipulation.py    WITH NAME    Manipulation
+
+Documentation          Удаленно заходим на машину с запущенной SBC и завершаем работу библиотеки SBC_Remote_Library
+
+
+*** Test Cases ***
+
+Stop SBC Remote Library
+
+         [Documentation]    Заевршаем работу Sbc Remote Library
+         Stop SBC Library   ${remote_lib_host}
+         Sleep             2

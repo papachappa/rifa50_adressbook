@@ -1,0 +1,260 @@
+*** Settings ***
+Resource    ../../resources/common_settings.txt
+
+Library   Remote  http://127.0.0.1:8000   WITH NAME   SippA
+Library   Remote  http://127.0.0.1:8001   WITH NAME   SippB
+#Library   Remote  http://127.0.0.1:8002   WITH NAME   SippC
+#Library   Remote  http://127.0.0.1:8020   WITH NAME   Man
+#Library   Remote  http://127.0.0.1:8003   WITH NAME   SippD
+
+Library    OperatingSystem
+Library    Process
+Library    ${execution_lib_path}/Manipulation.py    WITH NAME    Manipulation
+Library    ${execution_lib_path}/Check.py      WITH NAME   Check
+#Library   modules/MySQL.py      WITH NAME   MySQL
+
+Library   ${execution_lib_path}/TimeSuite.py      WITH NAME   TimeSuite
+
+Library   ${execution_lib_path}/ServerTime.py      WITH NAME   ServerTime
+
+#Library   modules/MySqlMkdVpbxCDR.py    WITH NAME   MySqlMkd
+
+Library   ${execution_lib_path}/Manage.py     WITH NAME   Manage
+
+*** Variables ***
+${local_ip_a}  ${remote_lib_host}
+${local_ip_b}  ${remote_lib_host}
+${local_ip_x}  ${remote_lib_host}
+#${local_ip_d}  ${remote_lib_host}
+
+${sipp_a_number}    6001
+${sipp_b_number}    2030
+${sipp_x_number}    2031
+#${sipp_d_number}    3103
+
+
+${scenario_csv}      scenario.csv
+${scenario_csv_A}    6001.csv
+${scenario_csv_B}    2030.csv
+${scenario_csv_X}    2031.csv
+
+
+${log_error_A}       error${sipp_a_number}.log
+${log_message_A}     message${sipp_a_number}.log
+${log_log_A}         log${sipp_a_number}.log
+${log_counts_A}      counts${sipp_a_number}.csv
+
+
+${log_error_B}       error${sipp_b_number}.log
+${log_message_B}     message${sipp_b_number}.log
+${log_log_B}         log${sipp_b_number}.log
+${log_counts_B}      counts${sipp_b_number}.csv
+
+${log_error_X}       error${sipp_x_number}.log
+${log_message_X}     message${sipp_x_number}.log
+${log_log_X}         log${sipp_x_number}.log
+${log_counts_X}      counts${sipp_x_number}.csv
+
+
+
+${out_international_number}     981012345
+${out_national_number}          983123456789
+
+#${parallel_search_number}       3778
+#${serial_search_number}         3779
+#${cycle_search_number}          3777
+
+${profiles}           profiles.vpbx
+${vpbx_sipp_a}        1/Users
+${vpbx_sipp_b}        5/Users
+${vpbx_sipp_c}        5/Users
+${vpbx_sipp_d}        5/Users
+${sipp_a_cfg}         2000.cfg
+${sipp_b_cfg}         ${sipp_b_number}.cfg
+#${sipp_c_cfg}         ${}.cfg
+#${sipp_d_cfg}         ${sipp_d_number}.cfg
+${sipp_a_prof}        ${profiles}/${vpbx_sipp_a}/${sipp_a_cfg}
+${sipp_b_prof}        ${profiles}/${vpbx_sipp_b}/${sipp_b_cfg}
+#${sipp_c_prof}        ${profiles}/${vpbx_sipp_c}/${sipp_c_cfg}
+#${sipp_d_prof}        ${profiles}/${vpbx_sipp_d}/${sipp_d_cfg}
+${registrations_db}   profiles/registrations.db
+
+${pbxd_cdr_vpbx}     /usr/protei/Protei-MKD/MKD/logs/pbxd_cdr_vpbx
+${pbxd_cdr}          /usr/protei/Protei-MKD/MKD/logs/pbxd_cdr
+*** Keywords ***
+
+Get SippA and SippB Logs
+    SippA.Logs
+    SippB.Logs
+
+Get SippA and SippD Logs
+    SippA.Logs
+    SippD.Logs
+
+Get SippA and SippC Logs
+    SippA.Logs
+    SippC.Logs
+
+Get SippA and SippB and SippC Logs
+    SippA.Logs
+    SippB.Logs
+    SippC.Logs
+
+Get SippA and SippC and SippD Logs
+    SippA.Logs
+    SippC.Logs
+    SippD.Logs
+
+Get SippA and SippB and SippC and SippD Logs
+    SippA.Logs
+    SippB.Logs
+    SippC.Logs
+    SippD.Logs
+
+Import SippA SBC Logs
+    SippA.Import Sbc Logs  ${sbc_remote_path}
+
+Import SippA and SippB SBC Logs
+    SippA.Import Sbc Logs  ${sbc_remote_path}
+    SippB.Import Sbc Logs  ${sbc_remote_path}
+
+Import SippA and SippB and SippC SBC Logs
+    SippA.Import Sbc Logs   ${sbc_remote_path}
+    SippB.Import Sbc Logs   ${sbc_remote_path}
+    SippC.Import Sbc Logs   ${sbc_remote_path}
+
+Setup Sipp
+    SippA.Setup                         ${SCENARIO_PATH}     ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen_A}     ${local_ip_a}    ${host_a_ip}    60010
+    SippB.Setup                         ${SCENARIO_PATH}     ${sipp_b_number}     ${password}    ${sipp_b_number}     ${domen_B}     ${local_ip_b}    ${host_b_ip}    20300
+#   SippC.Setup                         ${}     ${password}    ${}     ${domen}     ${local_ip_c}    ${host_c_ip}     5068
+#   SippD.Setup                         ${sipp_d_number}     ${password}    ${sipp_d_number}     ${domen}     ${local_ip_d}    ${host_d_ip}     5070
+
+
+Setup Sipp SBC
+    SippA.Setup                         ${SCENARIO_PATH}     ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen_A}     ${local_ip_a}    ${host_x_ip}    5555
+    SippB.Setup                         ${SCENARIO_PATH}     ${sipp_b_number}     ${password}    ${sipp_b_number}     ${domen_B}     ${local_ip_b}    ${host_x_ip}    5556
+
+Setup Sipp SBC Reverse Call
+    SippA.Setup                         ${SCENARIO_PATH}     ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen_A}     ${local_ip_a}    ${host_x_ip}    5555
+    SippB.Setup                         ${SCENARIO_PATH}     ${sipp_b_number}     ${password}    ${sipp_b_number}     ${domen_B}     ${local_ip_b}    ${host_x_ip_reverse}    5556
+
+
+
+Setup Sipp SBC Route Stat
+    SippA.Setup                         ${SCENARIO_PATH}     ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen_A}     ${local_ip_a}    ${host_x_ip}    5555   80   5  1000
+    SippB.Setup                         ${SCENARIO_PATH}     ${sipp_b_number}     ${password}    ${sipp_b_number}     ${domen_B}     ${local_ip_b}    ${host_x_ip}    5556   80   5  1000
+
+
+
+Setup Sipp SBC Alarm Call
+    SippA.Setup                         ${SCENARIO_PATH}     ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen_A}     ${local_ip_a}    ${host_x_ip}    5555   1   1  1000
+    SippB.Setup                         ${SCENARIO_PATH}     ${sipp_b_number}     ${password}    ${sipp_b_number}     ${domen_B}     ${local_ip_b}    ${host_x_ip}    5556   1   15    1000   12
+
+
+Setup Sipp SBC Dead Calls
+    SippA.Setup                         ${SCENARIO_PATH}     ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen_A}     ${local_ip_a}    ${host_x_ip}    5555   50   5  1000
+    SippB.Setup                         ${SCENARIO_PATH}     ${sipp_b_number}     ${password}    ${sipp_b_number}     ${domen_B}     ${local_ip_b}    ${host_x_ip}    5556   60   5  1000
+    SippC.Setup                         ${SCENARIO_PATH}     ${sipp_x_number}     ${password}    ${sipp_x_number}     ${domen_B}     ${local_ip_x}    ${host_x_ip}    5557   80   5  1000
+
+
+Setup Sipp SBC Weight Calls
+    SippA.Setup                         ${SCENARIO_PATH}     ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen_A}     ${local_ip_a}    ${host_x_ip}    5555   80   5  1000
+    SippB.Setup                         ${SCENARIO_PATH}     ${sipp_b_number}     ${password}    ${sipp_b_number}     ${domen_B}     ${local_ip_b}    ${host_x_ip}    5556   80   5  1000   35
+    SippC.Setup                         ${SCENARIO_PATH}     ${sipp_x_number}     ${password}    ${sipp_x_number}     ${domen_B}     ${local_ip_x}    ${host_x_ip}    5557   80   5  1000   35
+
+Setup Sipp SBC Much Calls
+    SippA.Setup                         ${SCENARIO_PATH}     ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen_A}     ${local_ip_a}    ${host_x_ip}    5555   80   5  1000
+    SippB.Setup                         ${SCENARIO_PATH}     ${sipp_b_number}     ${password}    ${sipp_b_number}     ${domen_B}     ${local_ip_b}    ${host_x_ip}    5556   80   5  1000
+    SippC.Setup                         ${SCENARIO_PATH}     ${sipp_x_number}     ${password}    ${sipp_x_number}     ${domen_B}     ${local_ip_x}    ${host_x_ip}    5557   80   5  1000
+
+Setup Sipp Much Calls In
+#    [Arguments]                    @{varargs}
+    SippA.Setup                         ${SCENARIO_PATH}     ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen_A}     ${local_ip_a}    ${host_a_ip}    60010   40   15    1000   12
+    SippB.Setup                         ${SCENARIO_PATH}     ${sipp_b_number}     ${password}    ${sipp_b_number}     ${domen_B}     ${local_ip_b}    ${host_b_ip}    20300   40   15    1000   12
+
+Setup Sipp Much Calls Out
+#    [Arguments]                    @{varargs}
+    SippA.Setup                         ${SCENARIO_PATH}     ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen_A}     ${local_ip_a}    ${host_a_ip}    60010   40   15    1000   12
+    SippB.Setup                         ${SCENARIO_PATH}     ${sipp_b_number}     ${password}    ${sipp_b_number}     ${domen_B}     ${local_ip_b}    ${host_b_ip}    20300   40   15    1000   12
+
+
+Rewrite And Restart SBC
+    Setup SBC path    ${sbc_remote_path}    ${cli_remote_path}
+    Restart SBC
+    Sleep                               3
+
+
+Setup Sipp Diagnostic
+    SippA.Setup                         ${SCENARIO_PATH}     ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen_A}     ${local_ip_a}    ${host_a_ip}    60010   50   15    1000
+
+
+Hard Ending Sipp A
+    SippA.Kill Sipp
+
+
+Hard Ending Sipp A and B
+    SippA.Kill Sipp
+    SippB.Kill Sipp
+
+
+Soft Ending Sipp
+    ${rc} =  Run And Return Rc           bash -c "echo q >/dev/udp/${remote_lib_host}/8888"
+    Should Be Equal              ${rc}   ${0}
+    ${rc} =    Run And Return Rc        bash -c "echo q >/dev/udp/${remote_lib_host}/8889"
+    Should Be Equal             ${rc}   ${0}
+
+
+
+Setup Sipp Registration
+
+    SippA.Setup                         ${SCENARIO_PATH}     ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen_A}     ${local_ip_a}    ${host_a_ip}    60010   1   None  None   None
+    ...                                 None   None   14400
+    SippB.Setup                         ${SCENARIO_PATH}     ${sipp_b_number}     ${password}    ${sipp_b_number}     ${domen_B}     ${local_ip_b}    ${host_b_ip}     20300   1   None  None  None
+    ...                                 None  None   14400
+#    SippC.Setup                         ${sipp_c_number}     ${password}    ${sipp_c_number}     ${domen}     ${local_ip_c}    ${host_c_ip}     5068
+#    ...                                 expires_time=7200
+#    SippD.Setup                         ${sipp_d_number}     ${password}    ${sipp_d_number}     ${domen}     ${local_ip_d}    ${host_d_ip}     5070
+#    ...                                 expires_time=7200
+
+Setup Sipp With Out Direction
+    SippA.Setup                         ${SCENARIO_PATH}     ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen}     ${local_ip_a}    ${host_a_ip}     5064
+    SippB.Setup                         ${SCENARIO_PATH}     ${sipp_b_number}     ${password}    ${sipp_b_number}     ${domen}     ${local_ip_b}    ${host_b_ip}     5066
+#    SippC.Setup                         ${sipp_c_number}     ${password}    ${sipp_c_number}     ${domen}     ${local_ip_c}    ${host_c_ip}     5068
+#    SippD.Setup                         5106                 ${password}    5106            pasha.sip.pbx     ${remote_lib_host}    ${host_d_ip}     5070
+
+Setup Sipp 3pcc Mode
+    SippB.Setup                         ${SCENARIO_PATH}     ${sipp_b_number}     ${password}    ${sipp_b_number}     ${domen}     ${local_ip_b}    ${host_b_ip}     5066
+#    SippC.Setup                         ${sipp_c_number}     ${password}    ${sipp_c_number}     ${domen}     ${local_ip_c}    ${host_c_ip}     5068
+    SippA.Setup                         ${SCENARIO_PATH}     ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen}     ${local_ip_a}    ${host_a_ip}     5062    1
+    ...                                 ${local_ip_a}:5064
+#    SippD.Setup                         ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen}     ${local_ip_a}    ${host_a_ip}     5064    1
+#    ...                                 ${local_ip_d}:5064
+
+Start Sipp Remote Library
+    Manage.Start Sipp Remote Library        127.0.0.1       8000
+    Sleep                                   2
+    Manage.Start Sipp Remote Library        127.0.0.1       8001
+    Sleep                                   2
+    Manage.Start Sipp Remote Library        127.0.0.1       8002
+    Sleep                                   2
+#    Manage.Start Sipp Remote Library        127.0.0.1       8003
+#    Sleep                                   2
+
+Stop Sipp Remote Library
+    Manage.Stop Sipp Remote Library
+
+#MySQL Time
+#    MySQL.Database Connect              ${host_mkd}     ${mysql_user}    ${mysql_pswd}    ${mysql_db}
+#    ${mysql_time}                       MySQL.Query                         select now()
+#    [Return]                            ${mysql_time}
+
+Last CDR record
+    ${cdr_record}                       MySqlMkd.Get Last Cdr Record        support     elephant    ${host_mkd}     ${pbxd_cdr_vpbx}
+    [Return]                            ${cdr_record}
+
+Compare Event Mysql and Mkd cdr         [Arguments]     ${cdr_path}
+    MySqlMkd.Check Mysql                support     elephant    ${host_mkd}     ${cdr_path}      ${mysql_ip_1}   ${mysql_ip_2}
+
+Get Server Time
+    ${server_time}                      ServerTime.Info Last Time     ${host_mkd}
+    [Return]                            ${server_time}

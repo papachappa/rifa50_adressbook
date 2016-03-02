@@ -1,0 +1,63 @@
+*** Settings ***
+
+Resource        ${COMMON_SETTINGS_FILE}
+
+Suite Setup         Run Keywords    Setup Sipp Much Calls In      Rewrite And Restart SBC
+Suite teardown      Sleep       30
+
+
+*** Test Cases ***
+
+Running CLI
+     [Documentation]                    Запускаем модуль CLI
+     Expectus                           sbc operator id 1 max-incoming-calls 1     commit
+     Sleep                              3
+
+Check In Cfg File
+     Check SBC Conf Contain             MaxIncomingCurrentCalls = 1;
+     Sleep                              3
+
+Running Scenario
+    [Documentation]                         Абонент ${sipp_a_number} совершает вызов на абонента ${sipp_b_number}
+    [Teardown]                              Get SippA and SippB Logs
+    SippB.Run Scenario                      ${SCENARIO_PATH}/Max_Incoming_Calls/receive_call_wait_bye_A-B    ${log_error_B}    ${log_message_B}    ${log_log_B}
+    SippA.Set CdPN                          ${sipp_b_number}
+    SippA.Run Scenario                      ${SCENARIO_PATH}/Max_Incoming_Calls/uac_init_invite_A-B          ${log_error_A}    ${log_message_A}    ${log_log_A}
+    Sleep                                   19
+    SippB.Waiting For Stop Scenario Fail    15
+    SippA.Waiting For Stop Scenario Fail    15
+
+Import SBC Logs
+    Import SippA and SippB SBC Logs
+
+Check In SBC Diagnostic Warning Log
+     Sleep                               8
+     [Documentation]                     Проверка файла sbc_diagnostic_warning.log
+     SBC.Check File                      sbc_diagnostic.log     4;Max number of calls   Operator1
+
+Check In SBC Alarm CDR Log
+     [Documentation]                     Проверка файла alarm_cdr.log
+     Sleep                               8
+     SBC.Check File                      alarm_cdr.log     Ngn.SBC.Op.1;Ngn.SBC.Op;exICur;INTEGER;1;0;0
+
+Check In Abonent Logs
+     [Documentation]                     Проверка файла логов абонента А
+     SippA.Check File                    ${SCENARIO_PATH}/Max_Incoming_Calls/uac_init_invite_A-B/log/${log_error_A}    403 Forbidden     cause=127
+
+
+Restarting MKD
+
+            [Documentation]            Рестарт МКД с ip адресом ${host_mkd_A}
+            [Timeout]                  2 minutes
+            Manipulation.Manipulate      MKD     restart    ${host_mkd_A}
+            Sleep                         5
+            Manipulation.Check Pids Count   MKD-MKD   restart   ${host_mkd_A}
+
+
+Restarting MKD5
+
+            [Documentation]            Рестарт МКД с ip адресом ${host_mkd_B}
+            [Timeout]                  2 minutes
+            Manipulation.Manipulate      MKD     restart    ${host_mkd_B}
+            Sleep                         5
+            Manipulation.Check Pids Count   MKD-MKD   restart   ${host_mkd_B}

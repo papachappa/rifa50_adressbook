@@ -1,0 +1,63 @@
+*** Settings ***
+Resource        ${COMMON_SETTINGS_FILE}
+Suite Setup         Run Keywords     Setup Sipp      Rewrite And Restart SBC
+Suite teardown      Sleep       10
+
+*** Test Cases ***
+
+
+Running CLI
+     [Documentation]                    Запускаем модуль CLI
+     Expectus                           sbc operator id 1 route rule 1 ping-timeout 3000   commit
+     Sleep                              1
+
+Check In Cfg File
+     SBC.Check SBC Conf Contain         Ping = 3000;
+     Sleep                              1
+
+
+Check In SBC info.log ON
+     [Documentation]                    Проверка файла info.log
+     Sleep                              20
+     SBC.Check File                     info.log    Ngn.SBC.Op.1.Route.1.Gate.0: status on
+
+
+Check In SBC alarm_cdr.log ON
+     [Documentation]                     Проверка файла alarm_cdr.log. Проверка живучести оператора. Должен быть жив
+     Sleep                               2
+     SBC.Check File                      alarm_cdr.log    Ngn.SBC.Op.1.Route.1;Ngn.SBC.Op.Route;PSTATE;INTEGER;1;0;0
+
+
+Stopping MKD
+     [Documentation]                     Остановка МКД
+     [Timeout]                           2 minutes
+     Manipulation.Manipulate             MKD     stop    ${host_mkd_A}
+     Sleep                               5
+     Manipulation.Check Pids Count       MKD-MKD   stop   ${host_mkd_A}
+
+
+
+Check In SBC info.log OFF
+     [Documentation]                     Проверка файла info.log
+     Sleep                               30
+     SBC.Check File                      info.log    Ngn.SBC.Op.1.Route.1.Gate.0: status off
+
+
+Check In SBC alarm_cdr.log OFF
+     [Documentation]                     Проверка файла alarm_cdr.log. Проверка живучести оператора. Должент быть мертв
+     Sleep                               2
+     SBC.Check File                      alarm_cdr.log    Ngn.SBC.Op.1.Route.1;Ngn.SBC.Op.Route;PSTATE;INTEGER;0;0;0
+
+
+Starting MKD
+     [Documentation]                     Запуск   МКД
+     [Timeout]                           2 minutes
+     Manipulation.Manipulate             MKD     start    ${host_mkd_A}
+     Sleep                               5
+     Manipulation.Check Pids Count       MKD-MKD   start   ${host_mkd_A}
+
+
+
+
+
+

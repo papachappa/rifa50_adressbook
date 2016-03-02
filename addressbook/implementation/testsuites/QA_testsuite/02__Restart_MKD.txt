@@ -1,0 +1,31 @@
+*** Settings ***
+
+Resource        ${COMMON_SETTINGS_FILE}
+
+Suite Setup         Setup Sipp
+Suite teardown      Sleep       2
+
+
+*** Test Cases ***
+
+Rewrite And Restart SBC
+            Rewrite And Restart SBC
+
+
+Restarting MKD
+
+            [Documentation]            Рестарт МКД с ip адресом ${host_mkd_A}
+            [Timeout]                  2 minutes
+            Manipulation.Manipulate      MKD     restart    ${host_mkd_A}
+            Sleep                         5
+            Manipulation.Check Pids Count   MKD-MKD   restart   ${host_mkd_A}
+
+
+Restarting MKD5
+
+            [Documentation]            Рестарт МКД с ip адресом ${host_mkd_B}
+            [Timeout]                  2 minutes
+            Manipulation.Manipulate      MKD     restart    ${host_mkd_B}
+            Sleep                         5
+            Manipulation.Check Pids Count   MKD-MKD   restart   ${host_mkd_B}
+

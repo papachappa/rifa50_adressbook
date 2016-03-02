@@ -1,0 +1,52 @@
+*** Settings ***
+
+Resource        ${COMMON_SETTINGS_FILE}
+
+Suite Setup         Run Keywords    Setup Sipp SBC Alarm Call      Rewrite And Restart SBC
+Suite teardown      Sleep       10
+
+*** Test Cases ***
+
+Running CLI
+     [Documentation]                    Запускаем модуль CLI и изменяем конфиг для работы без MKD
+     Expectus                           sbc operator id 1 route rule 1 external-host ${remote_lib_host}:5555    end    end   end   sbc service-platform id 13 gates 0 internal-host ${remote_lib_host}:5556   priority 100    weight 50    ping-timeout 3000   commit
+     Sleep                              2
+
+
+Check In Cfg File
+     Check SBC Conf Contain            ExtGate = "${remote_lib_host}:5555"   IntGate = "${remote_lib_host}:5556"      Priority = 100   Ping = 3000   Weight = 50 
+     Sleep                              3
+
+
+Basic Call
+
+    SippB.Run Scenario                  scenario_SBC/Alarm_Cant_Find_Int_Gate/receive_call_wait_bye_A-B       ${log_error_B}    ${log_message_B}    ${log_log_B}
+    Sleep                               20
+    LOG TO CONSOLE                      "SIPP.B must be stopped"
+    SippB.Waiting For Stop Scenario     4
+
+
+
+Killing SippB Must Arise Error
+
+    Sleep                               37       #35 нужно чтобы точно считать SIPP.B dead state
+    SippA.Set CdPN                      ${sipp_b_number}
+    SippA.Run Scenario                  scenario_SBC/Alarm_Cant_Find_Int_Gate/uac_init_invite_A-B             ${log_error_A}    ${log_message_A}    ${log_log_A}
+    Sleep                               5
+    SippA.Waiting For Stop Scenario     3
+    Get SippA and SippB Logs
+
+Import SBC Logs
+    Import SippA and SippB SBC Logs
+
+
+Check In SBC Diagnostic Log
+     [Documentation]                    Проверка файла sbc_diagnostic.log
+     SBC.Check File                     sbc_diagnostic.log   Can't find internal gate
+
+
+
+
+
+
+

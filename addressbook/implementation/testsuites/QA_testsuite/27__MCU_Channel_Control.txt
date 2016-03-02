@@ -1,0 +1,53 @@
+*** Settings ***
+Resource        ${COMMON_SETTINGS_FILE}
+
+Suite Setup         Run Keywords    Setup Sipp      Rewrite And Restart SBC
+Suite teardown      Sleep       10
+
+
+*** Test Cases ***
+
+Changing Local Conf
+     [Documentation]                     Заменяем локальный интерфейс в MCU через SBC
+     SBC.Replace String                  ${SBC_cfg_file}    Interface = ${remote_lib_host}      Interface = ${host_mkd_A}
+     SBC.Replace String                  ${SBC_cfg_file}    Port = 1960     Port = 1950
+     SBC.Replace String                  ${SBC_cfg_file}    IP = ${remote_lib_host}    IP = ${host_mkd_A}
+     Sleep                               1
+     SBC.Reload SBC
+     Sleep                               3
+
+Check In SBC Config
+     [Documentation]                     Проверка файла SBC.cfg
+     SBC.Check File                      ${SBC_cfg_file}     IP = ${host_mkd_A}     Port = 1950    Interface = ${host_mkd_A}
+     Sleep                               2
+
+
+Restart MCU
+     [Documentation]                     Перезапуск MCU
+     [Timeout]                           2 minutes
+     Manipulation.Manipulate             MCU       restart   ${host_mkd_A}
+     Sleep                               5
+     Manipulation.Check Pids Count       MKD-MCU   restart   ${host_mkd_A}
+     BuiltIn.Sleep                       7
+
+
+Basic Call
+    [Documentation]                     Абонент ${sipp_a_number} совершает вызов на абонента ${sipp_b_number}
+    [Teardown]                          Get SippA and SippB Logs
+    SippB.Run Scenario                  ${SCENARIO_PATH}/MCU_Channel_Control/receive_call_wait_bye_A-B       ${log_error_B}    ${log_message_B}    ${log_log_B}
+    SippA.Set CdPN                      ${sipp_b_number}
+    SippA.Run Scenario                  ${SCENARIO_PATH}/MCU_Channel_Control/uac_init_invite_A-B             ${log_error_A}    ${log_message_A}    ${log_log_A}
+    Sleep                               18
+    SippA.Waiting For Stop Scenario     7
+    SippB.Waiting For Stop Scenario     7
+
+
+Import SBC Logs
+    Import SippA and SippB SBC Logs
+
+Netstat And Check MCU
+    [Documentation]                         Проверка  Audio Channels
+    ${out} =   Manipulation.Run Command     netstat -nap | grep MCU | wc -l    ${host_mkd_A}
+    Should Be True    ${out} > 200
+
+

@@ -1,0 +1,31 @@
+*** Settings ***
+Resource        ${COMMON_SETTINGS_FILE}
+
+Suite Setup         Run Keywords    Setup Sipp      Rewrite And Restart SBC
+Suite teardown      Sleep       10
+
+*** Test Cases ***
+
+Check CDR In Trace Cfg
+     [Documentation]                     Проверка файла Trace.cfg
+     SBC.Check File                      ${SBC_trace_cfg_file}   file=sbc_cdr.log;
+     Sleep                               3
+
+
+Basic Call
+    [Documentation]                     Абонент ${sipp_a_number} совершает вызов на абонента ${sipp_b_number}
+    [Teardown]                          Get SippA and SippB Logs
+    SippB.Run Scenario                  ${SCENARIO_PATH}/Count_CDR_Fields/receive_call_wait_bye_A-B       ${log_error_B}    ${log_message_B}    ${log_log_B}
+    SippA.Set CdPN                      ${sipp_b_number}
+    SippA.Run Scenario                  ${SCENARIO_PATH}/Count_CDR_Fields/uac_init_invite_A-B             ${log_error_A}    ${log_message_A}    ${log_log_A}
+    Sleep                               18
+    SippA.Waiting For Stop Scenario     7
+    SippB.Waiting For Stop Scenario     7
+
+Check In CDR Fields
+     [Documentation]                     Проверка файла sbc_cdr.log
+     SBC.Count Item                      ${SBC_cdr_file}
+     Sleep                               3
+
+Import SBC Logs
+    Import SippA and SippB SBC Logs

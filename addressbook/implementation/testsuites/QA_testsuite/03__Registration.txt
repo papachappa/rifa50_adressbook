@@ -1,0 +1,36 @@
+*** Settings ***
+
+Resource        ${COMMON_SETTINGS_FILE}
+
+Documentation                          Регистрация абонентов на МКД
+
+Suite Setup          Setup Sipp Registration
+Suite teardown      Sleep       2
+
+*** Test cases ***
+
+Init and Register SippA
+    [Documentation]                     Регистрация абонента ${sipp_a_number}
+    SippA.Run Scenario                  ${SCENARIO_PATH}/Registration_Call_Bye/registration_A-B-6001-2030      ${log_error_A}    ${log_message_A}    ${log_log_A}
+    SippA.Waiting For Stop Scenario     8
+    SippA.Logs
+    sleep                               2
+
+Init and Register SippB
+    [Documentation]                     Регистрация абонента ${sipp_b_number}
+    SippB.Run Scenario                  ${SCENARIO_PATH}/Registration_Call_Bye/registration_A-B-6001-2030      ${log_error_B}    ${log_message_B}    ${log_log_B}
+    SippB.Waiting For Stop Scenario     8
+    SippB.Logs
+    sleep                               2
+
+
+Check Abonents Registrations
+    [Documentation]                     Проверка регистрации абонентов
+    Sleep                               10
+    Check Registrations
+
+*** Keywords ***
+Check Registrations
+    Check.Check Registration            ${host_mkd_A}     ${sipp_a_number}@${remote_lib_host}:60010
+    Sleep                               4
+    Check.Check Registration            ${host_mkd_B}     ${sipp_b_number}@${remote_lib_host}:20300

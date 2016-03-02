@@ -1,0 +1,42 @@
+*** Settings ***
+Resource        ${COMMON_SETTINGS_FILE}
+
+Suite Setup         Rewrite And Restart SBC
+Suite teardown      Sleep       5
+
+
+*** Test cases ***
+
+Running CLI
+     [Documentation]                    Запускаем модуль CLI и изменяем конфиг для работы без MKD
+     Expectus                           sbc operator id 1 route rule 1 external-host ${remote_lib_host}:5555   end    end    end    sbc service-platform id 13 gates 0 internal-host ${remote_lib_host}:5556   priority 10    weight 50   commit
+     Sleep                              2
+
+
+Check In Cfg File
+     SBC.Check SBC Conf Contain            ExtGate = "${remote_lib_host}:5555"   IntGate = "${remote_lib_host}:5556"     Priority = 10  Weight = 50
+     Sleep                              3
+
+
+Basic Call
+    [Documentation]                     Абонент ${sipp_a_number} совершает вызов на абонента ${sipp_b_number}
+    SippA.Setup                         ${SCENARIO_PATH}   ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen_A}     ${remote_lib_host}    ${host_x_ip}   5555   1   None   None   None   None   None   None   ${remote_lib_host}    None   
+    SippB.Setup                         ${SCENARIO_PATH}   ${sipp_b_number}     ${password}    ${sipp_b_number}     ${domen_B}     ${remote_lib_host}    ${host_x_ip}   5556   1   None   None   None   None   16500   None   ${remote_lib_host}   rtp_echo   
+    [Teardown]                          Get SippA and SippB Logs
+    SippB.Run Scenario                  ${SCENARIO_PATH}/scenario_SBC/MCU_Alarm_uPT/receive_call_wait_bye_A-B        ${log_error_B}    ${log_message_B}    ${log_log_B}
+    SippA.Set CdPN                      ${sipp_b_number}
+    SippA.Run Scenario                  ${SCENARIO_PATH}/scenario_SBC/MCU_Alarm_uPT/uac_init_invite_A-B              ${log_error_A}    ${log_message_A}    ${log_log_A}
+    Sleep                               2
+    SippA.Waiting For Stop Scenario     8
+    SippB.Waiting For Stop Scenario     8
+
+Check In SBC alarm_cdr.log
+     [Documentation]                     Проверка файла alarm_cdr.log на наличие аварий
+     Sleep                               25
+     SBC.Check File                      alarm_cdr.log    Ngn.SBC.Op.1;Ngn.SBC.Op;uPT;INTEGER;1;0;0
+
+Import SBC Logs
+    Import SippA and SippB SBC Logs
+
+
+

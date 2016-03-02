@@ -1,0 +1,34 @@
+*** Settings ***
+Resource        ${COMMON_SETTINGS_FILE}
+Suite Setup         Run Keywords     Setup Sipp      Rewrite And Restart SBC
+Suite teardown      Sleep       10
+
+*** Test Cases ***
+
+Running CLI
+     [Documentation]                    Запускаем модуль CLI и удаляем оператора
+     Expectus                           sbc operator id 1 delete route rule 1     commit
+     Sleep                              3
+
+Check In Cfg File
+     SBC.Check SBC Conf Not Contain     ComponentAddr = Ngn.SBC.Op.1.Route.1;
+     Sleep                              3
+
+
+Running Scenario
+    SippA.Set CdPN                      ${sipp_b_number}
+    SippA.Run Scenario                  ${SCENARIO_PATH}/Deleting_Operator_Route_Component/uac_init_invite_A-B       ${log_error_A}    ${log_message_A}    ${log_log_A}
+    SippA.Logs
+    Sleep                               15
+    SippA.Waiting For Stop Scenario     5
+
+Import SBC Logs
+    Import SippA SBC Logs
+
+
+Check In SBC Diagnostic Warning Log
+     [Documentation]                     Проверка файла sbc_diagnostic.log
+     SBC.Check File                      sbc_diagnostic.log    Can't find operator
+
+
+

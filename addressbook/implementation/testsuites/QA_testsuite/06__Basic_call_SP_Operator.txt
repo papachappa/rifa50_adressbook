@@ -1,0 +1,27 @@
+*** Settings ***
+
+Resource        ${COMMON_SETTINGS_FILE}
+
+Documentation                           Базовый вызов. Абонент сервисной платформы вызывает абонента оператора через SBC
+
+Suite Setup         Setup Sipp
+Suite Teardown      Sleep   10
+
+*** Test cases ***
+
+Rewrite SBC Config
+     ${status} =           Manipulation.Reset SBC Conf
+     LOG                  "SBC успешно перезапущен"
+
+
+Basic Call
+    [Documentation]                     Абонент ${sipp_b_number} совершает вызов на абонента ${sipp_a_number}
+    [Teardown]                          Get SippA and SippB Logs
+    SippA.Run Scenario                  ${SCENARIO_PATH}/Registration_Call_Bye/receive_call_wait_bye_B-A    ${log_error_A}    ${log_message_A}    ${log_log_A}
+    SippB.Set CdPN                      ${sipp_a_number}
+    SippB.Run Scenario                  ${SCENARIO_PATH}/Registration_Call_Bye/uac_init_invite_B-A          ${log_error_B}    ${log_message_B}    ${log_log_B}
+    SippB.Waiting For Stop Scenario     15
+    SippA.Waiting For Stop Scenario     15
+
+Import SBC Logs
+    Import SippA SBC Logs

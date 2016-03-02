@@ -1,0 +1,13 @@
+*** Settings ***
+
+Library     ${EXECUTION_LIB_PATH}/Manipulation.py    WITH NAME    Manipulation
+
+Documentation          Удаленно заходим на машину с запущенной SBC и запускаем удаленную библиотеку SBC_Remote_Library
+
+*** Test Cases ***
+
+Execute SBC_Remote_Library
+
+           [Documentation]    Запускаем SBC_Remote_Library
+           Start SBC Library  ${remote_lib_host}   ${remote_lib_port}   ${REMOTE_LIB_PATH}
+           Sleep              2

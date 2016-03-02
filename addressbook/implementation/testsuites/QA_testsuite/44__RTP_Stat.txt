@@ -1,0 +1,42 @@
+*** Settings ***
+
+Resource        ${COMMON_SETTINGS_FILE}
+Suite Setup         Run Keywords    Setup Sipp SBC      Rewrite And Restart SBC
+Suite teardown      Sleep       10
+
+
+*** Variables ***
+
+#${path_pcap}        /usr/protei/pj/test/speech.pcap
+#${path_txt}         /usr/protei/pj/test/speech.txt
+
+*** Test Cases ***
+
+Running CLI
+     [Documentation]                    Запускаем модуль CLI и изменяем конфиг для работы без MKD
+     Expectus                           sbc operator id 1 route rule 1 external-host ${remote_lib_host}:5555     end    end   end   sbc service-platform id 13 gates 0 internal-host ${remote_lib_host}:5556   priority 10    weight 50   commit
+     Sleep                              2
+
+
+Check In Cfg File
+     Check SBC Conf Contain            ExtGate = "${remote_lib_host}:5555"   IntGate = "${remote_lib_host}:5556"     Priority = 10  Weight = 50
+     Sleep                              3
+
+
+Basic Call
+    [Documentation]                     Абонент ${sipp_a_number} совершает вызовы на платформу SBC
+
+    [Teardown]                          Get SippA and SippB Logs
+    SippB.Run Scenario                  ${SCENARIO_PATH}/scenario_SBC/RTP_Stat/receive_call_wait_bye_A-B      ${log_error_B}    ${log_message_B}    ${log_log_B}
+    SippA.Set CdPN                      ${sipp_b_number}
+    SippA.Run Scenario                  ${SCENARIO_PATH}/scenario_SBC/RTP_Stat/uac_init_invite_A-B            ${log_error_A}    ${log_message_A}    ${log_log_A}
+    SippA.Waiting For Stop Scenario     25
+    SippB.Waiting For Stop Scenario     25
+
+Check In SBC sbc_cdr.log
+     [Documentation]                    Проверка файла sbc_cdr.log
+     SBC.Check File                     sbc_cdr.log    ${remote_lib_host}:6001/8/190/0/236/0     ${remote_lib_host}:6000/190/8/236/0/0/0
+
+Import SBC Logs
+    Import SippA and SippB SBC Logs
+

@@ -1,0 +1,45 @@
+*** Settings ***
+
+Resource        ${COMMON_SETTINGS_FILE}
+
+Suite Setup         Run Keywords    Setup Sipp Much Calls In     Rewrite And Restart SBC
+Suite teardown      Sleep       10
+
+
+*** Test Cases ***
+
+Running CLI
+     [Documentation]                       Запускаем модуль CLI
+     Expectus                              sbc operator id 1 cps 2 cps-exceed-mode DROP    commit
+     Sleep                                 3
+
+Check In Cfg File
+     Check SBC Conf Contain                CPS = 2;     BehaviorAtExcessCPS = DROP;
+     Sleep                                  3
+
+
+Running Scenario
+    [Documentation]                         Абонент ${sipp_a_number} совершает вызов на абонента ${sipp_b_number}
+    [Teardown]                              Get SippA and SippB Logs
+    SippB.Run Scenario                      ${SCENARIO_PATH}/CPS_DROP/receive_call_wait_bye_A-B    ${log_error_B}    ${log_message_B}    ${log_log_B}
+    SippA.Set CdPN                          ${sipp_b_number}
+    SippA.Run Scenario                      ${SCENARIO_PATH}/CPS_DROP/uac_init_invite_A-B          ${log_error_A}    ${log_message_A}    ${log_log_A}
+    Sleep                                   10
+    SippB.Waiting For Stop Scenario Fail    7
+    SippA.Waiting For Stop Scenario Fail    7
+
+Import SBC Logs
+    Import SippA and SippB SBC Logs
+
+Check In SBC Diagnostic Warning Log
+     [Documentation]                        Проверка файла sbc_diagnostic_warning.log
+     SBC.Check SBC Diagnostic Warning Log   18;Exceeded CPS
+
+Check In SBC Alarm CDR Log
+     [Documentation]                        Проверка файла alarm_cdr.log
+     SBC.Check File                         alarm_cdr.log     PROTEI;Ngn.SBC.Op.1;Ngn.SBC.Op;exCPS;INTEGER;1;0;0
+
+#Check In Abonent Logs
+#     [Documentation]                        Проверка файла логов абонента А
+#     SippA.Check File                       ${SCENARIO_PATH}/CPS_DROP/uac_init_invite_A-B/log/${log_error_A}    504 Server Time-out     cause=102 
+

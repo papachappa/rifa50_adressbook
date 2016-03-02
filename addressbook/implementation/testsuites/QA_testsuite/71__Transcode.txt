@@ -1,0 +1,66 @@
+*** Settings ***
+
+Resource        ${COMMON_SETTINGS_FILE}
+
+Suite Setup         Rewrite And Restart SBC
+Suite teardown      Sleep       10
+
+
+*** Variables ***
+
+${sbc_port_A}      ${SCENARIO_PATH}/scenario_SBC/Transcode/uac_init_invite_A-B/sbc_port_A
+
+
+*** Test cases ***
+
+Running CLI
+     [Documentation]                    Запускаем модуль CLI, изменяем конфиг для работы без MKD, добавляем медиа-профили и поддержку кодеков
+     Expectus                           sbc operator id 1 route rule 1 external-host ${remote_lib_host}:5555     end    end   end   sbc service-platform id 13 gates 0 internal-host ${remote_lib_host}:5556   priority 100    weight 50   commit
+     Sleep                              1
+     Expectus                           sbc operator id 1 route rule 1 media-profile 1   end   end   end   sbc service-platform id 13 media-profile 2   end   end   commit
+     Sleep                              1
+     Expectus                           sbc media-profile id 1 audio supported insert 0 1   end   end   end   end   sbc media-profile id 2 audio supported insert 0 2   commit
+     Sleep                              1
+
+Check In Cfg File
+     SBC.Check SBC Conf Contain         ExtGate = "${remote_lib_host}:5555"   IntGate = "${remote_lib_host}:5556"     Priority = 100   Weight = 50   MediaProfile = "1"    MediaProfile = "2"    Supported
+     Sleep                              3
+
+
+
+Basic Call
+    [Documentation]                     Абонент ${sipp_a_number} совершает вызов на абонента ${sipp_b_number}
+    SippA.Setup                         ${SCENARIO_PATH}   ${sipp_a_number}     ${password}    ${sipp_a_number}     ${domen_A}     ${remote_lib_host}    ${host_x_ip}   5555   1   None   None   None   None   None   None   ${remote_lib_host}    None   
+    SippB.Setup                         ${SCENARIO_PATH}   ${sipp_b_number}     ${password}    ${sipp_b_number}     ${domen_B}     ${remote_lib_host}    ${host_x_ip}   5556   1   None   None   None   None   16500   None   ${remote_lib_host}   rtp_echo   
+    [Teardown]                          Get SippA and SippB Logs
+    SippB.Run Scenario                  ${SCENARIO_PATH}/scenario_SBC/Transcode/receive_call_wait_bye_A-B       ${log_error_B}    ${log_message_B}    ${log_log_B}
+    SippA.Set CdPN                      ${sipp_b_number}
+    SippA.Run Scenario                  ${SCENARIO_PATH}/scenario_SBC/Transcode/uac_init_invite_A-B             ${log_error_A}    ${log_message_A}    ${log_log_A}
+    Sleep                               18
+
+Send Frequency
+    [Documentation]        Проверяем спектр с помощью gstreamer
+    Manipulation.Import Pcma File        ${remote_lib_host}     ${SRC_PCMA_FILE}
+    Sleep                               1
+#    ${port_A} =            Get SBC Port       ${sbc_port_A}
+#    ${port_B} =            Remote.Get SBC Port         ${sbc_port_B}
+#    [Teardown]              Get SippA and SippB Logs
+#    ${port_A} =            Convert to integer  ${port_A}
+#    Media.Receive Port     ${16500}
+    Media.Receive On
+#    Media.Transmit Freq    ${600}
+#    Media.Transmit Host Port    192.168.125.7   ${port_A}
+#    Media.Transmit On
+    Sleep                   3
+#    ${dict}                 Media.Receive Spectrum
+    Sleep                   3
+    Run Keyword And Continue On Failure    Media.Check received freq    600   -14
+    Media.Receive Off
+#    Media.Transmit Off
+
+    SippA.Waiting For Stop Scenario     8
+    SippB.Waiting For Stop Scenario     8
+
+
+Import SBC Logs
+    Import SippA and SippB SBC Logs

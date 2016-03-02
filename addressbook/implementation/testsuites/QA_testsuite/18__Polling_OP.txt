@@ -1,0 +1,49 @@
+*** Settings ***
+Resource        ${COMMON_SETTINGS_FILE}
+
+Suite Setup         Run Keywords    Setup Sipp      Rewrite And Restart SBC
+Suite teardown      Sleep       10
+
+
+*** Test Cases ***
+
+Running CLI
+     [Documentation]                    Запускаем модуль CLI
+     Expectus                           sbc operator id 1 route rule 1 polling-timeout 2000   commit
+     Sleep                              1
+
+Check In Cfg File
+     Check SBC Conf Contain             Polling = 2000;
+     Sleep                              1
+
+
+Running Scenario
+    [Documentation]                         Абонент ${sipp_a_number} совершает вызов на абонента ${sipp_b_number}
+    [Teardown]                              Get SippA and SippB Logs
+    SippB.Run Scenario                      ${SCENARIO_PATH}/Polling_Operator/receive_call_wait_bye_A-B       ${log_error_B}    ${log_message_B}    ${log_log_B}
+    SippA.Set CdPN                          ${sipp_b_number}
+    SippA.Run Scenario                      ${SCENARIO_PATH}/Polling_Operator/uac_init_invite_A-B             ${log_error_A}    ${log_message_A}    ${log_log_A}
+    Sleep                                   25
+
+Import SBC Logs
+    Import SippA and SippB SBC Logs
+
+
+Check In Sip Transport Log
+     [Documentation]                     Проверка файла sip_transport.log
+     SBC.Check File                      sip_transport.log   OPTIONS sip:6001@${host_mkd_A}:${mkd_port} SIP/2.0
+
+
+Stopping MKD
+     [Documentation]            Остановка МКД
+     [Timeout]                  2 minutes
+     Manipulation.Manipulate      MKD     stop    ${host_mkd_A}
+     Sleep                         8
+     Manipulation.Check Pids Count   MKD-MKD   stop   ${host_mkd_A}
+
+Starting MKD
+     [Documentation]           Запуск   МКД
+     [Timeout]                  2 minutes
+     Manipulation.Manipulate      MKD     start    ${host_mkd_A}
+     Sleep                         8
+     Manipulation.Check Pids Count   MKD-MKD   start   ${host_mkd_A}

@@ -1,0 +1,47 @@
+*** Settings ***
+Resource        ${COMMON_SETTINGS_FILE}
+Suite Setup         Run Keywords    Setup Sipp SBC Much Calls      Rewrite And Restart SBC
+Suite teardown      Sleep       10
+
+*** Test Cases ***
+
+Running CLI
+     [Documentation]                    Запускаем модуль CLI и изменяем конфиг для работы без MKD
+     Expectus                           sbc operator id 1 route rule 1 external-host ${remote_lib_host}:5555     end    end   end   sbc service-platform id 13 gates 0 internal-host ${remote_lib_host}:5556   priority 100    weight 50    ping-timeout 0  end    end    end   end  sbc service-platform id 13 gates insert 1 internal-host ${remote_lib_host}:5557  priority 10   weight 0   ping-timeout 0   commit
+     Sleep                              2
+     SBC.Reload SBC
+
+Check In Cfg File
+     SBC.Check SBC Conf Contain         ExtGate = "${remote_lib_host}:5555"   IntGate = "${remote_lib_host}:5556"    IntGate = "${remote_lib_host}:5557"    Priority = 100   Priority = 10   Ping = 0   Weight = 50  Weight = 0
+     Sleep                              3
+
+
+Basic Call
+    [Documentation]                     Абонент ${sipp_a_number} совершает вызовы на платформу SBC
+    [Teardown]                          Get SippA and SippB and SippC Logs
+    SippB.Run Scenario                  ${SCENARIO_PATH}/scenario_SBC/Parallel_Gates_High_Priority/receive_call_wait_bye_B      ${log_error_B}    ${log_message_B}    ${log_log_B}
+    SippC.Run Scenario                  ${SCENARIO_PATH}/scenario_SBC/Parallel_Gates_High_Priority/receive_call_wait_bye_C      ${log_error_X}    ${log_message_X}    ${log_log_X}
+    SippA.Run Scenario                  ${SCENARIO_PATH}/scenario_SBC/Parallel_Gates_High_Priority/uac_init_invite_A            ${log_error_A}    ${log_message_A}    ${log_log_A}
+    Sleep                               20    
+    SippB.Kill Sipp
+    SippA.Waiting For Stop Scenario     5
+    SippB.Waiting For Stop Scenario     5
+    SippC.Waiting For Stop Scenario     5
+
+
+Moving CSV
+    [Documentation]      Перемещаем файл CSV 
+    SippA.Moving Csv
+    SippB.Moving Csv
+    SippC.Moving Csv
+
+Import SBC Logs
+    Import SippA and SippB and SippC SBC Logs
+
+
+Check in A B C Logs
+    SippA.Check File      ${SCENARIO_PATH}/scenario_SBC/Parallel_Gates_High_Priority/uac_init_invite_A/log/${log_counts_A}   80;0;0;80;0;0;0;80;0;0;0;0;0;0;0;80;0;0;0;80;0;80;0;80;0;0;80;0;0;0;
+    SippB.Check File      ${SCENARIO_PATH}/scenario_SBC/Parallel_Gates_High_Priority/receive_call_wait_bye_B/log/${log_counts_B}   0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;
+    SippC.Check File      ${SCENARIO_PATH}/scenario_SBC/Parallel_Gates_High_Priority/receive_call_wait_bye_C/log/${log_counts_X}   80;0;0;0;80;0;80;0;80;0;0;80;0;0;0;80;0;0;0;80;0;
+
+

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE scenario SYSTEM "sipp.dtd">
+
+<!-- This program is free software; you can redistribute it and/or      -->
+<!-- modify it under the terms of the GNU General Public License as     -->
+<!-- published by the Free Software Foundation; either version 2 of the -->
+<!-- License, or (at your option) any later version.                    -->
+<!--                                                                    -->
+<!-- This program is distributed in the hope that it will be useful,    -->
+<!-- but WITHOUT ANY WARRANTY; without even the implied warranty of     -->
+<!-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the      -->
+<!-- GNU General Public License for more details.                       -->
+<!--                                                                    -->
+<!-- You should have received a copy of the GNU General Public License  -->
+<!-- along with this program; if not, write to the                      -->
+<!-- Free Software Foundation, Inc.,                                    -->
+<!-- 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA             -->
+<!--                                                                    -->
+<!--                 Sipp default 'uac' scenario.                       -->
+<!--                                                                    -->
+<!--      Contact: sip:[field0]@[local_ip]:[local_port] -->
+
+<scenario name="register_client_send_invite">
+  <Global variables="cgpn,domen"/>
+<send retrans="500">
+    <![CDATA[
+      INVITE sip:[service]@[remote_ip]:[remote_port] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      From: sipp <sip:[$cgpn]@[$domen]>;tag=[call_number][pid]
+      To: <sip:[service]@[$domen]:[remote_port]>
+      Call-ID: [call_id]
+      CSeq: [cseq] INVITE
+      Contact: <sip:[$cgpn]@[local_ip]:[local_port]>
+      Max-Forwards: 70
+      Content-Type: application/sdp
+      Content-Length: [len]
+P--Called-Party-ID: <sip:[$cgpn]@[$domen] <at> protei.com>
+
+      v=0
+      o=user1 53655765 2353687637 IN IP[local_ip_type] [local_ip]
+      s=-
+      c=IN IP[media_ip_type] [media_ip]
+      t=0 0
+      m=audio 16000 RTP/AVP 8
+      a=rtpmap:8 PCMA/8000
+      a=ptime:20
+      a=sendrecv
+
+    ]]>
+
+    </send>
+
+<recv response="100" optional="true"></recv>
+<recv response="180" optional="true">
+  </recv><recv response="183" optional="true">
+  </recv>
+
+<recv response="200">
+ <action>
+  <ereg regexp="m=audio ([0-9]*)" search_in="msg" check_it="true" assign_to="1,2"/>
+  <exec command="echo [$1]"/>
+  <exec command="echo [$2]  > sbc_port_A"/>
+ </action>
+</recv>
+
+<send>
+    <![CDATA[
+      ACK sip:[service]@[remote_ip]:[remote_port] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      From: <sip:[$cgpn]@[$domen]>;tag=[call_number][pid]
+      [last_To:]
+      Call-ID: [call_id]
+      CSeq: [cseq] ACK
+      Contact: <sip:[$cgpn]@[local_ip]:[local_port]>
+      Max-Forwards: 70
+      Content-Length: 0
+
+    ]]>
+
+    </send>
+
+
+
+<!-- Play a pre-recorded PCAP file (RTP stream) -->
+
+
+
+ <nop><action><exec command="gst-launch-0.10 -v -m  filesrc location = ./pcap/pcma ! rtppcmapay max-ptime=\"20000000\" ! udpsink host=192.168.125.7 port=[$2] > gst.send"/></action></nop>
+ <pause milliseconds="1000"/>
+<!--  <nop><action><exec command="gst-launch-0.10 -v udpsrc port=16000 caps=\"application/x-rtp, media=(string)audio, clock-rate=(int)8000, encoding-name=(string)PCMA, payload=(int)8\" ! rtppcmadepay ! filesink location=./pcap/received.pcma > gst.receive 2>&1"/></action></nop> -->
+<!-- <pause milliseconds="10750"/> -->
+<!-- <nop><action><exec command="kill $(ps afx | grep gst-launch | grep -v grep | awk '{print $1}')"/></action></nop>-->
+<!-- <pause milliseconds="1000"/> -->
+
+
+<send retrans="500">
+
+    <![CDATA[
+      BYE sip:[service]@[remote_ip]:[remote_port] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      From: <sip:[$cgpn]@[$domen]>;tag=[call_number][pid]
+      To: <sip:[service]@[$domen]:[remote_port]>
+      Call-ID: [call_id]
+      CSeq: [cseq] BYE
+      Max-Forwards: 70
+      Content-Length: 0
+
+    ]]>
+    </send><!-- The 'crlf' option inserts a blank line in the statistics report. --><recv response="200" crlf="true">
+  </recv>
+
+<!-- <pause milliseconds="6000"/> -->
+
+  <ResponseTimeRepartition value="10, 20, 30, 40, 50, 100, 150, 200"/>
+  <!-- call length repartition table (ms)     -->
+  <CallLengthRepartition value="10, 50, 100, 500, 1000, 5000, 10000"/>
+</scenario>
+

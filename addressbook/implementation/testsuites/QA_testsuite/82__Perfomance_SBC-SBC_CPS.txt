@@ -1,0 +1,75 @@
+*** Settings ***
+Resource        ${COMMON_SETTINGS_FILE}
+
+Suite Setup         Run Keywords        Setup Sipp    Rewrite And Restart SBC    Stop Sending MVSIP RTP
+#Suite Teardown      Sleep       3
+
+*** Variables ***
+
+${TrafficLevel}                         900
+${IterationsLimit}                      9000
+${RTP_time}                             2000
+
+*** Test Cases ***
+
+
+Check In Cfg File
+     SBC.Check SBC Conf Contain         ExtGate = "${remote_lib_host}:5555"   IntGate = "${remote_lib_host}:5556"    Interface = ${remote_lib_host}
+     Sleep                              3
+
+
+Make changes In MV-SIP configs
+     [Documentation]                    Настраиваем конфиги MV-SIP
+
+     @{int_1} =                         SBC.Get Integer       ${MVSIP0_cfg_file}     TrafficLevel =    IterationsLimit =    RTP_time =
+     @{int_2} =                         SBC.Get Integer       ${MVSIP1_cfg_file}     TrafficLevel =    IterationsLimit =    RTP_time =
+
+     SBC.Replace String                 ${MVSIP0_cfg_file}    TrafficLevel = @{int_1}[0]        TrafficLevel = ${TrafficLevel}
+     SBC.Replace String                 ${MVSIP0_cfg_file}    IterationsLimit = @{int_1}[1]     IterationsLimit = ${IterationsLimit}
+     SBC.Replace String                 ${MVSIP0_cfg_file}    RTP_time = @{int_1}[2]            RTP_time = ${RTP_time}
+     Sleep                              1
+
+     SBC.Replace String                 ${MVSIP1_cfg_file}    TrafficLevel = @{int_2}[0]        TrafficLevel = ${TrafficLevel}
+     SBC.Replace String                 ${MVSIP1_cfg_file}    IterationsLimit = @{int_2}[1]     IterationsLimit = ${IterationsLimit}
+     SBC.Replace String                 ${MVSIP1_cfg_file}    RTP_time = @{int_2}[2]            RTP_time = ${RTP_time}
+     Sleep                              1
+
+Check In MV-SIP configs
+     [Documentation]                    Проверка файла конфигов MV-SIP
+     SBC.Check File MVSIP               ${MVSIP0_cfg_file}     TrafficLevel = ${TrafficLevel}     IterationsLimit = ${IterationsLimit}    RTP_time = ${RTP_time}
+     SBC.Check File MVSIP               ${MVSIP1_cfg_file}     TrafficLevel = ${TrafficLevel}     IterationsLimit = ${IterationsLimit}    RTP_time = ${RTP_time}
+     Sleep                              1
+
+Define folder for logs
+    [Documentation]                     Создаем папку для логов
+    SippA.Run Scenario                  ${SCENARIO_PATH}/perfomance_SBC/Perfomance_SBC-SBC_CPS
+
+Start Sending MV-SIP
+    [Documentation]                     Запускаем MV-SIP
+    Sleep                               10
+    Manipulation.Run Command            cd ${MVSIP_REMOTE_PATH}/0 && ./start    ${remote_lib_host}
+    Sleep                               1
+    Manipulation.Run Command            cd ${MVSIP_REMOTE_PATH}/1 && ./start    ${remote_lib_host}
+    Sleep                               1
+
+Run Top Command
+    [Documentation]                     Запускаем команду top во время совершения вызовов и во время передачи RTP 
+    Sleep                               10
+    Manipulation.Run Command            top -n 5 -b > ${SCENARIO_PATH}/perfomance_SBC/Perfomance_SBC-SBC_CPS/top_layout_during_call_setup    ${remote_lib_host}
+    # another command     top -c -b -n 1 -p $(pgrep -d',' -f SBC-SBC) > 123
+
+
+Import SBC Logs
+     Sleep                              45
+    [Documentation]                     Импортируем SBC логи
+    Import SippA SBC Logs
+
+Import MVSIP 0 and 1 Logs
+    [Documentation]                     Импортируем MVSIP логи
+    Import MVSIP Logs
+
+
+
+
+
+
